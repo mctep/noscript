@@ -364,6 +364,28 @@ describe('ns.Model', function() {
                 expect(this.customCallback.callCount).to.be(1);
             });
 
+            it('should not duplicate custom events bindings', function() {
+                this.model._splitData(this.data);
+                this.model._splitData(this.data);
+                this.models[0].trigger('custom event');
+                expect(this.model.onCustomEvent.callCount).to.be(1);
+
+                var item = ns.Model.create('split1-item', {
+                    id: 1,
+                    foo: Math.random()
+                });
+
+                this.model.subscribeSplit(item);
+                this.models.push(item);
+
+                item.trigger('custom event2');
+                this.model.unsubscribeSplit(item);
+
+                item.trigger('custom event2');
+                expect(this.customCallback.callCount).to.be(1);
+            });
+
+
             it('should not trigger if submodel not in collection now', function() {
                 var data = this.data;
                 data.item = data.item.slice(1, 3);

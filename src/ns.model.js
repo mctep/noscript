@@ -105,6 +105,7 @@ ns.Model.prototype._splitData = function(data) {
     // мы забиндим их снова
     oldModels.forEach(function(model) {
         model.off('changed', callback);
+        that.unsubscribeSplit(model);
     });
 
     items.forEach(function(item) {
@@ -122,13 +123,7 @@ ns.Model.prototype._splitData = function(data) {
         // тригерим нотификацию в модель-коллекцию
         model.on('changed', callback);
 
-        // забиндим кастомные методы
-        if (info.events) {
-            for (var eventName in info.events) {
-                var fn = info.events[eventName];
-                model.on(eventName, that._prepareCallback(fn));
-            }
-        }
+        that.subscribeSplit(model);
 
         newModels.push(model);
     });
@@ -138,6 +133,31 @@ ns.Model.prototype._splitData = function(data) {
 };
 
 //  ---------------------------------------------------------------------------------------------------------------  //
+
+
+// Подписывает модель-коллекцию на кастомные события вложенных моделей
+// Метод публичный, т.к. это может понадобиться при ручном добавлении модели
+ns.Model.prototype.subscribeSplit = function(model) {
+    var that = this;
+    var info = this.info.split;
+    if (info.events) {
+        for (var eventName in info.events) {
+            var fn = info.events[eventName];
+            model.on(eventName, that._prepareCallback(fn));
+        }
+    }
+};
+
+ns.Model.prototype.unsubscribeSplit = function(model) {
+    var that = this;
+    var info = this.info.split;
+    if (info.events) {
+        for (var eventName in info.events) {
+            var fn = info.events[eventName];
+            model.off(eventName, that._prepareCallback(fn));
+        }
+    }
+};
 
 ns.Model.prototype._prepareCallback = function(fn) {
     if (typeof fn === 'string') {
