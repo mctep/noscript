@@ -122,6 +122,14 @@ ns.Model.prototype._splitData = function(data) {
         // тригерим нотификацию в модель-коллекцию
         model.on('changed', callback);
 
+        // забиндим кастомные методы
+        if (info.events) {
+            for (var eventName in info.events) {
+                var fn = info.events[eventName];
+                model.on(eventName, that._prepareCallback(fn));
+            }
+        }
+
         newModels.push(model);
     });
 
@@ -130,6 +138,17 @@ ns.Model.prototype._splitData = function(data) {
 };
 
 //  ---------------------------------------------------------------------------------------------------------------  //
+
+ns.Model.prototype._prepareCallback = function(fn) {
+    if (typeof fn === 'string') {
+        var method = this[fn];
+        if (!method) {
+            throw new Error("[ns.Model] Can't find method '" + fn + "' in '" + this.id + "'");
+        }
+    }
+
+    return method || fn;
+};
 
 /**
  * Определяет новую модель.

@@ -31,7 +31,14 @@ describe('ns.Model', function() {
                     id: '.id',
                     foo: '.value'
                 },
-                model_id: 'split1-item'
+                model_id: 'split1-item',
+                events: {
+                    'custom event': 'onCustomEvent',
+                    'custom event2': this.customCallback = sinon.spy()
+                }
+            },
+            methods: {
+                onCustomEvent: sinon.spy()
             }
         });
 
@@ -347,6 +354,14 @@ describe('ns.Model', function() {
                 this.model._splitData(this.data);
                 this.models[0].setData({id: 1, foo: 'foo', bar: 'bar'});
                 expect(callback.callCount).to.be(1);
+            });
+
+            it('should trigger custom event on submodel\'s', function() {
+                this.models[0].trigger('custom event');
+                expect(this.model.onCustomEvent.callCount).to.be(1);
+
+                this.models[0].trigger('custom event2');
+                expect(this.customCallback.callCount).to.be(1);
             });
 
             it('should not trigger if submodel not in collection now', function() {
